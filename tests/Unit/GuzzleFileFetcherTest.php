@@ -11,12 +11,15 @@ use PHPUnit\Framework\TestCase;
 use Tuf\Client\GuzzleFileFetcher;
 use Tuf\Exception\DownloadSizeException;
 use Tuf\Exception\RepoFileNotFound;
+use Tuf\Tests\TestHelpers\UtilsTrait;
 
 /**
  * @coversDefaultClass \Tuf\Client\GuzzleFileFetcher
  */
 class GuzzleFileFetcherTest extends TestCase
 {
+    use UtilsTrait;
+    
     /**
      * Data provider for testFetchFile().
      *
@@ -25,13 +28,13 @@ class GuzzleFileFetcherTest extends TestCase
      */
     public function dataProvider(): array
     {
-        return [
+        return static::getKeyedArray([
             [404, 256, RepoFileNotFound::class],
             [403, 256, 'RuntimeException'],
             [500, 256, 'RuntimeException'],
             [200, 4, DownloadSizeException::class],
             [200, 256, null],
-        ];
+        ]);
     }
 
     /**
@@ -64,7 +67,10 @@ class GuzzleFileFetcherTest extends TestCase
         $handlerStack->push(Middleware::history($history));
         $client = new Client(['handler' => $handlerStack]);
 
-        $fetcher = new GuzzleFileFetcher($client);
+        $fetcher = GuzzleFileFetcher::createFromUri('https://example.com');
+        $property = new \ReflectionProperty(GuzzleFileFetcher::class, 'client');
+        $property->setAccessible(true);
+        $property->setValue($fetcher, $client);
         if ($exceptionClass) {
             $this->expectException($exceptionClass);
         }

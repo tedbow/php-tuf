@@ -27,7 +27,7 @@ class GuzzleFileFetcher implements RepoFileFetcherInterface
      * @param \GuzzleHttp\ClientInterface $client
      *   The HTTP client.
      */
-    public function __construct(ClientInterface $client)
+    private function __construct(ClientInterface $client)
     {
         $this->client = $client;
     }
