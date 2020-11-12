@@ -2,7 +2,9 @@
 
 namespace Tuf;
 
+use Tuf\Exception\ExceptionTrait;
 use Tuf\Metadata\RootMetadata;
+use function PHPUnit\Framework\throwException;
 
 /**
  * Represent a collection of roles and their organization.
@@ -11,6 +13,8 @@ use Tuf\Metadata\RootMetadata;
  */
 class RoleDB
 {
+    use ExceptionTrait;
+
     /**
      * Key roles indexed by role name.
      *
@@ -102,7 +106,7 @@ class RoleDB
     public function addRole(string $roleName, array $roleInfo)
     {
         if ($this->roleExists($roleName)) {
-            throw new \Exception('Role already exists: ' . $roleName);
+            static::throwWrappedExcpetion(new \UnexpectedValueException('Role already exists: ' . $roleName));
         }
 
         $this->roles[$roleName] = $roleInfo;
