@@ -106,7 +106,7 @@ class RoleDB
     public function addRole(string $roleName, array $roleInfo)
     {
         if ($this->roleExists($roleName)) {
-            static::throwWrappedExcpetion(new \Exception('Role already exists: ' . $roleName));
+            static::throwWrappedExcpetion(new \UnexpectedValueException('Role already exists: ' . $roleName));
         }
 
         $this->roles[$roleName] = $roleInfo;
