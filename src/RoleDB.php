@@ -99,7 +99,7 @@ class RoleDB
      *     - https://github.com/php-tuf/php-tuf/issues/50
      *     - https://github.com/php-tuf/php-tuf/issues/52
      */
-    public function addRole(string $roleName, array $roleInfo)
+    public function addRole(string $roleName, object $roleInfo)
     {
         if ($this->roleExists($roleName)) {
             throw new \Exception('Role already exists: ' . $roleName);

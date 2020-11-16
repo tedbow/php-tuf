@@ -79,7 +79,7 @@ trait UtilsTrait
      *
      * @return void
      */
-    protected function nestedChange(array $keys, array &$data, $newValue) : void
+    protected function nestedChange(array $keys, &$data, $newValue) : void
     {
         $key = array_shift($keys);
         if ($keys) {

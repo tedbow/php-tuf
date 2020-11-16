@@ -94,7 +94,7 @@ class KeyDB
      *
      * @todo https://github.com/php-tuf/php-tuf/issues/56
      */
-    public static function computeKeyIds(array $keyMeta)
+    public static function computeKeyIds(\ArrayAccess $keyMeta)
     {
         $keyCanonicalStruct = [
             'keytype' => $keyMeta['keytype'],
@@ -136,7 +136,7 @@ class KeyDB
      *
      * @todo https://github.com/php-tuf/php-tuf/issues/56
      */
-    public function addKey(array $keyMeta)
+    public function addKey(object $keyMeta)
     {
         $this->keys[$keyMeta['keyid']] = $keyMeta;
     }

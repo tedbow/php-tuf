@@ -4,6 +4,8 @@
 namespace Tuf\Metadata;
 
 
+use phpDocumentor\Reflection\Types\Object_;
+
 class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
 {
 
@@ -41,7 +43,11 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
      */
     public function offsetGet($offset)
     {
-        return $this->internalClass->{$offset};
+        $value = $this->internalClass->{$offset};
+        if (is_object($value)) {
+            return clone $value;
+        }
+        return $value;
     }
 
     /**
@@ -69,7 +75,7 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
      */
     public function current()
     {
-        return $this->internalClass->{$this->internalCurrentKey};
+        return $this->offsetGet($this->internalCurrentKey);
     }
 
     /**
@@ -85,7 +91,7 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
             return FALSE;
         }
         $this->internalCurrentKey = $properties[$index];
-        return $this->internalClass->{$this->internalCurrentKey};
+        return $this->offsetGet($this->internalCurrentKey);
 
     }
 
