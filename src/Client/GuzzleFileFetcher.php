@@ -75,7 +75,7 @@ class GuzzleFileFetcher implements RepoFileFetcherInterface
         // If we reached the end of the stream, we didn't exceed the maximum
         // number of bytes.
         if ($body->eof() === true) {
-            $json = json_decode($contents, true);
+            $json = json_decode($contents);
             return JsonNormalizer::asNormalizedJson($json);
         } else {
             throw new DownloadSizeException("$fileName exceeded $maxBytes bytes");

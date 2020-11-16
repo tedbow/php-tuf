@@ -61,7 +61,8 @@ class MetadataBase
      */
     public static function createFromJson(string $json)
     {
-        $data = json_decode($json, true);
+        $data = json_decode($json);
+        static::convertToValidable($data);
         static::validateMetaData($data);
         return new static($data);
     }
@@ -77,7 +78,7 @@ class MetadataBase
      * @throws \Tuf\Exception\MetadataException
      *   Thrown if validation fails.
      */
-    protected static function validateMetaData(array $metadata) : void
+    protected static function validateMetaData(object $metadata) : void
     {
         $validator = Validation::createValidator();
         $collection = new Collection(static::getConstraints());
@@ -150,6 +151,23 @@ class MetadataBase
             'fields' => $fields,
             'allowExtraFields' => true,
         ];
+    }
+
+    private static function convertToValidable(&$data)
+    {
+        if ($data instanceof \stdClass) {
+            $data = new ValidatableClass($data);
+        }
+        foreach ($data as $key => $datum) {
+            if ($datum instanceof \stdClass) {
+                $datum = new ValidatableClass($datum);
+            }
+            if (is_array($datum) || $datum instanceof ValidatableClass) {
+                static::convertToValidable($datum);
+
+            }
+            $data[$key] = $datum;
+        }
     }
 
     /**
