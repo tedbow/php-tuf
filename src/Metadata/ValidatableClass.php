@@ -10,19 +10,20 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
     /**
      * @var \stdClass
      */
-    protected $class;
+    private $internalClass;
 
     /**
      * @var string
      */
-    protected $current_key;
+    private $internalCurrentKey;
 
     /**
      * ValidatableClass constructor.
      */
     public function __construct(\stdClass $class)
     {
-        $this->class = $class;
+        $this->internalClass = $class;
+        $this->resetPublicProperties();
         $this->rewind();
     }
 
@@ -32,7 +33,7 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
      */
     public function offsetExists($offset)
     {
-        return property_exists($this->class, $offset);
+        return property_exists($this->internalClass, $offset);
     }
 
     /**
@@ -40,7 +41,7 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
      */
     public function offsetGet($offset)
     {
-        return $this->class->{$offset};
+        return $this->internalClass->{$offset};
     }
 
     /**
@@ -48,7 +49,11 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
      */
     public function offsetSet($offset, $value)
     {
-        $this->class->{$offset} = $value;
+        if (in_array($offset, ['internalCurrentKey', 'internalClass'])) {
+            throw new \RuntimeException("Cannot used reserved property name '$offset'");
+        }
+        $this->internalClass->{$offset} = $value;
+        $this->resetPublicProperties();
     }
 
     /**
@@ -64,7 +69,7 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
      */
     public function current()
     {
-        return $this->class->{$this->current_key};
+        return $this->internalClass->{$this->internalCurrentKey};
     }
 
     /**
@@ -73,14 +78,14 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
     public function next()
     {
         $properties = $this->getPropertyNames();
-        $index = array_search($this->current_key, $properties);
+        $index = array_search($this->internalCurrentKey, $properties);
         $index++;
         if ($index >= count($properties)) {
-            $this->current_key = NULL;
+            $this->internalCurrentKey = NULL;
             return FALSE;
         }
-        $this->current_key = $properties[$index];
-        return $this->class->{$this->current_key};
+        $this->internalCurrentKey = $properties[$index];
+        return $this->internalClass->{$this->internalCurrentKey};
 
     }
 
@@ -89,7 +94,7 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
      */
     public function key()
     {
-        return $this->current_key;
+        return $this->internalCurrentKey;
     }
 
     /**
@@ -97,7 +102,7 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
      */
     public function valid()
     {
-        return in_array($this->current_key, $this->getPropertyNames());
+        return in_array($this->internalCurrentKey, $this->getPropertyNames());
     }
 
     /**
@@ -106,7 +111,7 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
     public function rewind()
     {
         $properties = $this->getPropertyNames();
-        $this->current_key = array_shift($properties);
+        $this->internalCurrentKey = array_shift($properties);
     }
 
     /**
@@ -114,11 +119,27 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
      */
     protected function getPropertyNames(): array
     {
-        return array_keys(get_object_vars($this->class));
+        return array_keys(get_object_vars($this->internalClass));
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function count()
     {
         return count($this->getPropertyNames());
+    }
+
+
+    private function resetPublicProperties()
+    {
+        $reflection = new \ReflectionObject($this);
+        $publicProperties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
+        foreach ($publicProperties as $propertyName) {
+            unset($this->{$propertyName});
+        }
+        foreach ($this->getPropertyNames() as $propertyName) {
+            $this->{$propertyName} = $this->offsetGet($propertyName);
+        }
     }
 }
