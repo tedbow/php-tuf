@@ -1,20 +1,17 @@
 <?php
 
-
 namespace Tuf\Metadata;
 
-
-use phpDocumentor\Reflection\Types\Object_;
-
-class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
+/**
+ * Defines a class that can used with Symfony validator constraints.
+ *
+ * Symfony validator constraints do not work with classes that have dynamic
+ * public properties.
+ */
+final class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
 {
-
     /**
-     * @var \stdClass
-     */
-    private $internalClass;
-
-    /**
+     * The current key to implement \Iterator.
      * @var string
      */
     private $internalCurrentKey;
@@ -24,8 +21,12 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
      */
     public function __construct(\stdClass $class)
     {
-        $this->internalClass = $class;
-        $this->resetPublicProperties();
+        // Transfer all the public properties to this class.
+        $reflection = new \ReflectionObject($class);
+        $publicProperties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
+        foreach ($publicProperties as $publicProperty) {
+            $this->{$publicProperty->getName()}  = $publicProperty->getValue($class);
+        }
         $this->rewind();
     }
 
@@ -35,7 +36,7 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
      */
     public function offsetExists($offset)
     {
-        return property_exists($this->internalClass, $offset);
+        return in_array($offset, $this->getPublicPropertyNames());
     }
 
     /**
@@ -43,7 +44,8 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
      */
     public function offsetGet($offset)
     {
-        $value = $this->internalClass->{$offset};
+        $this->validateOffset($offset);
+        $value = $this->{$offset};
         if (is_object($value)) {
             return clone $value;
         }
@@ -55,11 +57,8 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
      */
     public function offsetSet($offset, $value)
     {
-        if (in_array($offset, ['internalCurrentKey', 'internalClass'])) {
-            throw new \RuntimeException("Cannot used reserved property name '$offset'");
-        }
-        $this->internalClass->{$offset} = $value;
-        $this->resetPublicProperties();
+        $this->validateOffset($offset);
+        $this->{$offset} = $value;
     }
 
     /**
@@ -83,7 +82,7 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
      */
     public function next()
     {
-        $properties = $this->getPropertyNames();
+        $properties = $this->getPublicPropertyNames();
         $index = array_search($this->internalCurrentKey, $properties);
         $index++;
         if ($index >= count($properties)) {
@@ -108,7 +107,7 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
      */
     public function valid()
     {
-        return in_array($this->internalCurrentKey, $this->getPropertyNames());
+        return in_array($this->internalCurrentKey, $this->getPublicPropertyNames());
     }
 
     /**
@@ -116,16 +115,25 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
      */
     public function rewind()
     {
-        $properties = $this->getPropertyNames();
+        $properties = $this->getPublicPropertyNames();
         $this->internalCurrentKey = array_shift($properties);
     }
 
     /**
+     * Gets the names of the public property of this class.
+     *
      * @return array
+     *   The names of the public properties.
      */
-    protected function getPropertyNames(): array
+    private function getPublicPropertyNames(): array
     {
-        return array_keys(get_object_vars($this->internalClass));
+        $reflection = new \ReflectionObject($this);
+        $publicProperties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
+        $propertyNames = [];
+        foreach ($publicProperties as $publicProperty) {
+            $propertyNames[] = $publicProperty->getName();
+        }
+        return $propertyNames;
     }
 
     /**
@@ -133,19 +141,21 @@ class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
      */
     public function count()
     {
-        return count($this->getPropertyNames());
+        return count($this->getPublicPropertyNames());
     }
 
-
-    private function resetPublicProperties()
+    /**
+     * Validate the offset is not a non-public property of this class.
+     *
+     * @param $offset
+     *   The offset.
+     *
+     * @return void
+     */
+    private function validateOffset($offset): void
     {
-        $reflection = new \ReflectionObject($this);
-        $publicProperties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
-        foreach ($publicProperties as $propertyName) {
-            unset($this->{$propertyName});
-        }
-        foreach ($this->getPropertyNames() as $propertyName) {
-            $this->{$propertyName} = $this->offsetGet($propertyName);
+        if ($offset === 'internalCurrentKey') {
+            throw new \RuntimeException("Cannot used reserved property name '$offset'");
         }
     }
 }
