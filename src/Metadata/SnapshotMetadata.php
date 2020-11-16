@@ -25,7 +25,7 @@ class SnapshotMetadata extends MetadataBase implements MetaFileInfoInterface
     {
         $options = parent::getSignedCollectionOptions();
         $options['fields']['meta'] = new Required([
-            new Type('array'),
+            new Type('object'),
             new Count(['min' => 1]),
             new All([
                 new Collection(

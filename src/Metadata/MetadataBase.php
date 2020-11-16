@@ -42,7 +42,7 @@ class MetadataBase
      * @param array $metadata
      *   The data.
      */
-    public function __construct(array $metadata)
+    public function __construct(object $metadata)
     {
         $this->metaData = $metadata;
     }
@@ -176,7 +176,7 @@ class MetadataBase
      * @return array
      *   The "signed" section of the data.
      */
-    public function getSigned() : array
+    public function getSigned() : object
     {
         return $this->metaData['signed'];
     }

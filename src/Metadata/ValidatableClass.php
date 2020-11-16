@@ -4,7 +4,7 @@
 namespace Tuf\Metadata;
 
 
-class ValidatableClass implements \ArrayAccess, \Iterator
+class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
 {
 
     /**
@@ -115,5 +115,10 @@ class ValidatableClass implements \ArrayAccess, \Iterator
     protected function getPropertyNames(): array
     {
         return array_keys(get_object_vars($this->class));
+    }
+
+    public function count()
+    {
+        return count($this->getPropertyNames());
     }
 }
