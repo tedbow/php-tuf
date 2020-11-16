@@ -22,7 +22,7 @@ class JsonNormalizer
      *     http://wiki.laptop.org/go/Canonical_JSON.
      *     Consider creating a separate library under php-tuf just for this?
      */
-    public static function asNormalizedJson( $structure) : string
+    public static function asNormalizedJson($structure) : string
     {
         self::rKeySort($structure);
 
@@ -40,14 +40,13 @@ class JsonNormalizer
      *
      * @return void
      */
-    private static function rKeySort( &$structure) : void
+    private static function rKeySort(&$structure) : void
     {
         if (is_array($structure)) {
             if (!ksort($structure, SORT_STRING)) {
                 throw new \Exception("Failure sorting keys. Canonicalization is not possible.");
             }
-        }
-        elseif ($structure instanceof ValidatableClass) {
+        } elseif ($structure instanceof ValidatableClass) {
             $sorted = [];
             foreach ($structure as $key => $value) {
                 $sorted[$key] = $value;

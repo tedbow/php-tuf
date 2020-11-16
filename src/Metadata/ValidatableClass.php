@@ -18,6 +18,9 @@ final class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
 
     /**
      * ValidatableClass constructor.
+     *
+     * @param \stdClass $class
+     *   The class to use.
      */
     public function __construct(\stdClass $class)
     {
@@ -86,12 +89,11 @@ final class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
         $index = array_search($this->internalCurrentKey, $properties);
         $index++;
         if ($index >= count($properties)) {
-            $this->internalCurrentKey = NULL;
-            return FALSE;
+            $this->internalCurrentKey = null;
+            return false;
         }
         $this->internalCurrentKey = $properties[$index];
         return $this->offsetGet($this->internalCurrentKey);
-
     }
 
     /**
@@ -120,6 +122,29 @@ final class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function count()
+    {
+        return count($this->getPublicPropertyNames());
+    }
+
+    /**
+     * Validate the offset is not a non-public property of this class.
+     *
+     * @param string $offset
+     *   The offset.
+     *
+     * @return void
+     */
+    private function validateOffset(string $offset): void
+    {
+        if ($offset === 'internalCurrentKey') {
+            throw new \RuntimeException("Cannot used reserved property name '$offset'");
+        }
+    }
+
+    /**
      * Gets the names of the public property of this class.
      *
      * @return array
@@ -134,28 +159,5 @@ final class ValidatableClass implements \ArrayAccess, \Iterator, \Countable
             $propertyNames[] = $publicProperty->getName();
         }
         return $propertyNames;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function count()
-    {
-        return count($this->getPublicPropertyNames());
-    }
-
-    /**
-     * Validate the offset is not a non-public property of this class.
-     *
-     * @param $offset
-     *   The offset.
-     *
-     * @return void
-     */
-    private function validateOffset($offset): void
-    {
-        if ($offset === 'internalCurrentKey') {
-            throw new \RuntimeException("Cannot used reserved property name '$offset'");
-        }
     }
 }

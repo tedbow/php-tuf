@@ -164,7 +164,6 @@ class MetadataBase
             }
             if (is_array($datum) || $datum instanceof ValidatableClass) {
                 static::convertToValidable($datum);
-
             }
             $data[$key] = $datum;
         }
