@@ -94,7 +94,7 @@ class KeyDB
      *
      * @todo https://github.com/php-tuf/php-tuf/issues/56
      */
-    public static function computeKeyIds(\ArrayAccess $keyMeta)
+    public static function computeKeyIds($keyMeta)
     {
         $keyCanonicalStruct = [
             'keytype' => $keyMeta['keytype'],
