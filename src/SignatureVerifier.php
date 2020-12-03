@@ -138,14 +138,15 @@ class SignatureVerifier
     /**
      * Replaces root metadata.
      *
-     * @param \Tuf\Metadata\RootMetadata $nextRoot
+     * @param \Tuf\Metadata\RootMetadata $newRootMetaData
      *
      * @throws \Tuf\Exception\PotentialAttackException\SignatureThresholdExpception
      */
-    public function replaceRootMetaData(RootMetadata $nextRoot)
+    public function replaceRootMetaData(RootMetadata $newRootMetaData)
     {
-        $this->roleDB = RoleDB::createFromRootMetadata($nextRoot);
-        $this->keyDB = KeyDB::createFromRootMetadata($nextRoot);
-        $this->checkSignatures($nextRoot);
+        $this->checkSignatures($newRootMetaData);
+        $this->roleDB = RoleDB::createFromRootMetadata($newRootMetaData);
+        $this->keyDB = KeyDB::createFromRootMetadata($newRootMetaData);
+        $this->checkSignatures($newRootMetaData);
     }
 }
