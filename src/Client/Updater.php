@@ -311,8 +311,7 @@ class Updater
             // *TUF-SPEC-v1.0.9 Section 5.1.3
             $nextRoot = RootMetadata::createFromJson($nextRootContents, $this->signatureVerifier);
             // Signature verifier to use the new root information.
-            $this->signatureVerifier = SignatureVerifier::createFromRootMetadata($nextRoot);
-            $nextRoot = RootMetadata::createFromJson($nextRootContents, $this->signatureVerifier);
+            $this->signatureVerifier->replaceRootMetaData($nextRoot);
             // *TUF-SPEC-v1.0.9 Section 5.1.4
             static::checkRollbackAttack($rootData, $nextRoot, $nextVersion);
             $rootData = $nextRoot;

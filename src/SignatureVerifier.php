@@ -134,4 +134,18 @@ class SignatureVerifier
         //     false if not.
         return \sodium_crypto_sign_verify_detached($sigBytes, $bytes, $pubkeyBytes);
     }
+
+    /**
+     * Replaces root metadata.
+     *
+     * @param \Tuf\Metadata\RootMetadata $nextRoot
+     *
+     * @throws \Tuf\Exception\PotentialAttackException\SignatureThresholdExpception
+     */
+    public function replaceRootMetaData(RootMetadata $nextRoot)
+    {
+        $this->roleDB = RoleDB::createFromRootMetadata($nextRoot);
+        $this->keyDB = KeyDB::createFromRootMetadata($nextRoot);
+        $this->checkSignatures($nextRoot);
+    }
 }
