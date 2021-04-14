@@ -339,26 +339,21 @@ class Updater
      */
     protected function checkSignatures(MetadataBase $metadata) : void
     {
-        $signatures = $metadata->getSignatures();
-
         $role = $this->roleDB->getRole($metadata->getRole());
-        $needVerified = $role->getThreshold();
+        $signatureThreshold = $role->getThreshold();
         $haveVerified = 0;
 
+        $signatures = $metadata->getSignatures();
         $canonicalBytes = JsonNormalizer::asNormalizedJson($metadata->getSigned());
         foreach ($signatures as $signature) {
             if ($role->isKeyIdAcceptable($signature['keyid'])) {
-                $haveVerified += (int) $this->verifySingleSignature($canonicalBytes, $signature);
-            }
-            // @todo Determine if we should check all signatures and warn for
-            //     bad signatures even this method returns TRUE because the
-            //     threshold has been met.
-            if ($haveVerified >= $needVerified) {
-                break;
+                if ($this->verifySingleSignature($canonicalBytes, $signature)) {
+                    $haveVerified++;
+                }
             }
         }
 
-        if ($haveVerified < $needVerified) {
+        if ($haveVerified < $signatureThreshold) {
             throw new SignatureThresholdExpception("Signature threshold not met on " . $metadata->getRole());
         }
     }
